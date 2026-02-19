@@ -31,14 +31,17 @@ export default function Home() {
   );
   const [result, setResult] = useState<Result | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>("");
+  const base = process.env.NEXT_PUBLIC_API_BASE;
+  console.log("API BASE:", process.env.NEXT_PUBLIC_API_BASE);
 
   const onSubmit = async () => {
     setStatus("loading");
     setErrorMsg("");
     setResult(null);
+    
 
     try {
-      const res = await fetch("http://localhost:8000/analyze", {
+      const res = await fetch(`${base}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -54,9 +57,15 @@ export default function Home() {
       const data: Result = await res.json();
 
       // ✅ 프론트 방어: 배열 길이 강제
-      data.reasons_top3 = (data.reasons_top3 || []).slice(0, 3);
-      data.message_examples = (data.message_examples || []).slice(0, 2);
-
+      // 배열 길이 제한 + 기본값
+      data.reasons_top3 = Array.isArray(data.reasons_top3) ? data.reasons_top3.slice(0, 3) : [];
+      data.message_examples = Array.isArray(data.message_examples) ? data.message_examples.slice(0, 2) : [];
+      data.actions = data.actions ?? { do: [], avoid: [] };
+      data.interpretation = data.interpretation ?? { mbti_view: "", why_this_matters: "" };
+      data.reality_check = data.reality_check ?? "";
+      data.comfort = data.comfort ?? "";
+      data.disclaimer = data.disclaimer ?? "";
+      data.summary = data.summary ?? "";
       setResult(data);
       setStatus("success");
     } catch (e: any) {
@@ -121,8 +130,12 @@ export default function Home() {
         <div style={{ marginTop: 20, padding: 12, border: "1px solid #ccc" }}>
           <b>에러 발생</b>
           <p style={{ marginTop: 8 }}>{errorMsg}</p>
+          <button onClick={onSubmit} style={{ marginTop: 10, padding: 10 }}>
+            다시 시도
+          </button>
         </div>
       )}
+
 
       {status === "success" && result && (
         <div style={{ marginTop: 24, display: "grid", gap: 16 }}>

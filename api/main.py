@@ -26,10 +26,13 @@ class Actions(BaseModel):
 class MsgExample(BaseModel):
     tone: str
     text:str
+class Interpretation(BaseModel):
+    mbti_view : str
+    why_this_matters : str
 
 class AnalyzeResponse(BaseModel):
     summary: str
-    interpretation: dict
+    interpretation: Interpretation
     reasons_top3 : List[Reason]
     actions: Actions
     message_examples: List[MsgExample]
